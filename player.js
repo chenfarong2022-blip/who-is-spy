@@ -105,30 +105,43 @@ function joinRoomDemo() {
   roomId = roomId || 'demo_' + Math.random().toString(36).substring(2, 8);
   playerNumber = Math.floor(Math.random() * 8) + 1;
   
-  // 模拟分配词语
-  const wordPairs = [
-    { civilian: "牛奶", spy: "豆浆" },
-    { civilian: "苹果", spy: "香蕉" },
-    { civilian: "咖啡", spy: "茶" },
-    { civilian: "微信", spy: "QQ" },
-    { civilian: "电影", spy: "电视剧" },
-    { civilian: "奶茶", spy: "果汁" },
-    { civilian: "篮球", spy: "足球" }
-  ];
+  // 从 localStorage 获取房主设置的词语（如果存在）
+  const storedWords = localStorage.getItem('room_' + roomId + '_words');
   
-  const pair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
-  const isSpyDemo = Math.random() > 0.8; // 20% 概率是卧底
+  if (storedWords) {
+    // 使用房主设置的词语
+    const words = JSON.parse(storedWords);
+    const isSpyDemo = Math.random() > (1 / words.playerCount); // 随机分配卧底
+    
+    myWord = isSpyDemo ? words.spyWord : words.civilianWord;
+    myPinyin = getPinyin(myWord);
+    isSpy = isSpyDemo;
+    
+    console.log('演示模式 (使用房主词语) - 玩家:', playerNumber, '词语:', myWord, '身份:', isSpy ? '卧底' : '平民');
+  } else {
+    // 模拟分配词语
+    const wordPairs = [
+      { civilian: "牛奶", spy: "豆浆" },
+      { civilian: "苹果", spy: "香蕉" },
+      { civilian: "咖啡", spy: "茶" },
+      { civilian: "微信", spy: "QQ" },
+      { civilian: "电影", spy: "电视剧" },
+      { civilian: "奶茶", spy: "果汁" },
+      { civilian: "篮球", spy: "足球" }
+    ];
+    
+    const pair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+    const isSpyDemo = Math.random() > 0.8; // 20% 概率是卧底
+    
+    myWord = isSpyDemo ? pair.spy : pair.civilian;
+    myPinyin = getPinyin(myWord);
+    isSpy = isSpyDemo;
+    
+    console.log('演示模式 (随机词语) - 玩家:', playerNumber, '词语:', myWord, '身份:', isSpy ? '卧底' : '平民');
+  }
   
-  myWord = isSpyDemo ? pair.spy : pair.civilian;
-  myPinyin = getPinyin(myWord);
-  isSpy = isSpyDemo;
-  
-  console.log('演示模式 - 玩家:', playerNumber, '词语:', myWord, '身份:', isSpy ? '卧底' : '平民');
-  
-  // 延迟一点显示，模拟等待
-  setTimeout(() => {
-    showPlayerPage();
-  }, 500);
+  // 直接显示玩家页面，不显示等待界面
+  showPlayerPage();
 }
 
 // 获取玩家信息
@@ -163,18 +176,17 @@ async function getPlayerInfo() {
 
 // 显示等待页面
 function showWaiting() {
+  // 演示模式：不显示等待页面，直接显示玩家页面
+  if (!supabase) {
+    showPlayerPage();
+    return;
+  }
+  
+  // Supabase 模式：显示等待页面
   document.getElementById('player-page').classList.remove('active');
   document.getElementById('waiting-page').classList.add('active');
   
-  // 等待房主开始游戏
-  if (supabase) {
-    waitForGameStart();
-  } else {
-    // 演示模式：2 秒后显示
-    setTimeout(() => {
-      showPlayerPage();
-    }, 2000);
-  }
+  waitForGameStart();
 }
 
 // 等待游戏开始
@@ -260,11 +272,19 @@ async function confirmWord() {
         .eq('id', playerId);
     }
     
-    // 显示游戏提示
-    alert('记住你的词语了吗？\n游戏即将开始！\n\nRemember your word?\nGame is about to start!');
+    // 演示模式：显示简单提示，保持当前页面
+    if (!supabase) {
+      // 轻微提示，不遮挡界面
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#22c55e;color:white;padding:12px 24px;border-radius:8px;font-size:0.9rem;z-index:1000;';
+      toast.textContent = '✅ 已确认 | Ready';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+      return;
+    }
     
-    // 可以跳转到游戏结束页面或保持当前页面
-    // 在实际游戏中，这里会等待所有玩家确认后开始
+    // Supabase 模式：显示游戏提示
+    alert('记住你的词语了吗？\n游戏即将开始！\n\nRemember your word?\nGame is about to start!');
     
   } catch (error) {
     console.error('确认失败:', error);

@@ -103,6 +103,16 @@ function showLobbyDemo() {
   document.getElementById('room-id-display').textContent = displayRoomId;
   document.getElementById('total-players').textContent = playerCount;
 
+  // 保存词语到 localStorage，供玩家端读取
+  const roomWords = {
+    civilianWord: civilianWord,
+    spyWord: spyWord,
+    playerCount: playerCount,
+    spyCount: spyCount
+  };
+  localStorage.setItem('room_' + displayRoomId + '_words', JSON.stringify(roomWords));
+  console.log('保存房间词语:', roomWords);
+
   // 生成二维码 URL - 直接使用绝对路径
   const baseUrl = window.location.origin + window.location.pathname;
   const roomUrl = baseUrl.replace(/index\.html$/, '').replace(/\/$/, '') + '/player.html?room=' + displayRoomId;
