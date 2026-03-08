@@ -98,7 +98,7 @@ async function createRoom() {
 function showLobbyDemo() {
   document.getElementById('setup-page').classList.remove('active');
   document.getElementById('lobby-page').classList.add('active');
-  
+
   const displayRoomId = roomId || 'demo_' + Math.random().toString(36).substring(2, 8);
   document.getElementById('room-id-display').textContent = displayRoomId;
   document.getElementById('total-players').textContent = playerCount;
@@ -106,9 +106,9 @@ function showLobbyDemo() {
   // 生成二维码 URL
   const baseUrl = window.location.href.replace('index.html', 'player.html');
   const roomUrl = baseUrl + '?room=' + displayRoomId;
-  
+
   console.log('生成二维码 URL:', roomUrl);
-  
+
   // 生成二维码
   try {
     QRCode.toCanvas(document.getElementById('qrcode'), roomUrl, {
@@ -124,7 +124,7 @@ function showLobbyDemo() {
     console.error('QRCode 库未加载:', e);
     document.getElementById('qrcode').innerHTML = '<p style="color:#6366f1;text-align:center;padding:20px;">🎮 演示模式<br>房间号：' + displayRoomId + '</p>';
   }
-  
+
   // 模拟玩家加入
   simulatePlayersJoining();
 }
@@ -250,9 +250,9 @@ async function startGame() {
       .from('rooms')
       .update({ status: 'playing' })
       .eq('id', roomId);
-
-    // 显示结果页面（房主可见）
-    showResult();
+    
+    // 显示主持人游戏页面
+    showHostGamePage(assignments);
 
   } catch (error) {
     console.error('开始游戏失败:', error);
@@ -262,9 +262,70 @@ async function startGame() {
 
 // 开始游戏（演示模式）
 function startGameDemo(assignments) {
-  // 在实际应用中，这里会通知所有玩家
-  alert('游戏已开始！\n请让玩家扫码查看身份。\n\nGame started!\nPlayers can scan QR to view their words.');
-  showResult();
+  // 演示模式：直接显示主持人游戏页面
+  showHostGamePage(assignments);
+}
+
+// 显示主持人游戏页面
+function showHostGamePage(assignments) {
+  document.getElementById('lobby-page').classList.remove('active');
+  document.getElementById('host-game-page').classList.add('active');
+
+  // 存储当前分配
+  window.currentAssignments = assignments;
+
+  // 生成玩家身份列表（隐藏状态）
+  generatePlayerIdentities(assignments);
+}
+
+// 生成玩家身份列表
+function generatePlayerIdentities(assignments) {
+  const listHtml = document.getElementById('identities-list');
+  const finalListHtml = document.getElementById('final-players-list');
+
+  let html = '';
+  let finalHtml = '';
+
+  for (let i = 0; i < assignments.length; i++) {
+    const isSpy = assignments[i] === 'spy';
+    const word = isSpy ? spyWord : civilianWord;
+    const pinyin = getPinyin(word);
+    const roleText = isSpy ? '卧底 Spy' : '平民 Civilian';
+    const roleClass = isSpy ? 'spy' : 'civilian';
+
+    html += `
+      <div class="identity-item ${roleClass}">
+        <div>
+          <div class="identity-player">玩家 Player ${i + 1}</div>
+          <div class="identity-word">${word} ${pinyin}</div>
+        </div>
+        <div class="identity-role ${roleClass}">${roleText}</div>
+      </div>
+    `;
+
+    finalHtml += `
+      <div class="identity-item ${roleClass}">
+        <div>
+          <div class="identity-player">玩家 Player ${i + 1}</div>
+          <div class="identity-word">${word} ${pinyin}</div>
+        </div>
+        <div class="identity-role ${roleClass}">${roleText}</div>
+      </div>
+    `;
+  }
+
+  listHtml.innerHTML = html;
+  finalListHtml.innerHTML = finalHtml;
+}
+
+// 切换玩家身份显示
+function togglePlayerList() {
+  const panel = document.getElementById('player-identities');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+  } else {
+    panel.style.display = 'none';
+  }
 }
 
 // 分配角色

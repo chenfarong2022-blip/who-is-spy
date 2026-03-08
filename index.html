@@ -82,6 +82,36 @@
       </div>
     </div>
     
+    <!-- 游戏进行页面（主持人专用） -->
+    <div id="host-game-page" class="page">
+      <h1 class="title">🎮 游戏进行中</h1>
+      <h2 class="subtitle">Game in Progress</h2>
+      
+      <div class="card">
+        <div class="host-tips">
+          <p>💡 主持人提示 Host Tips:</p>
+          <p>• 玩家依次描述自己的词语（不能说破）</p>
+          <p>• 每轮投票淘汰一人</p>
+          <p>• 点击下方按钮查看玩家身份</p>
+        </div>
+        
+        <button class="btn-secondary" onclick="togglePlayerList()">
+          👁️ 查看/隐藏玩家身份 Toggle Identities
+        </button>
+        
+        <div id="player-identities" class="player-identities" style="display: none;">
+          <h3 class="identities-title">📋 玩家身份列表 Player Identities</h3>
+          <div id="identities-list"></div>
+        </div>
+      </div>
+      
+      <div class="host-actions">
+        <button class="btn-primary" onclick="showResult()">
+          🏆 公布答案 Reveal Answers
+        </button>
+      </div>
+    </div>
+    
     <!-- 游戏结束页面 -->
     <div id="result-page" class="page">
       <h1 class="title" id="result-title">🏆 游戏结束</h1>
@@ -99,8 +129,13 @@
           </div>
         </div>
         
+        <div id="final-players" class="final-players">
+          <h3>📋 本局玩家 Players</h3>
+          <div id="final-players-list"></div>
+        </div>
+        
         <button class="btn-primary" onclick="newGame()">
-          新游戏 New Game
+          🔄 新游戏 New Game
         </button>
       </div>
     </div>
