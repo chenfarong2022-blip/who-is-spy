@@ -8,6 +8,9 @@
 </head>
 <body>
   <div class="container">
+    <!-- 调试信息区域 -->
+    <div id="debug-info" style="margin-bottom:10px;"></div>
+    
     <div id="player-page" class="page active">
       <h1 class="title">🎭 你的身份</h1>
       <h2 class="subtitle">Your Word</h2>
@@ -37,6 +40,13 @@
       
       <div class="game-tips">
         <div class="tip-item">
+          <span class="tip-icon">🔧</span>
+          <div class="tip-text">
+            <p>调试模式：如果词语不对，请截图告诉天工待诏</p>
+            <p>Debug: If word is wrong, screenshot and report</p>
+          </div>
+        </div>
+        <div class="tip-item">
           <span class="tip-icon">💬</span>
           <div class="tip-text">
             <p>描述你的词语，但不能直接说出来</p>
@@ -65,6 +75,11 @@
           </div>
         </div>
       </div>
+      
+      <!-- 调试按钮 -->
+      <button onclick="showDebugInfo('调试 Debug', roomId)" style="margin-top:16px;width:100%;padding:10px;background:#334155;border:none;border-radius:8px;color:#94a3b8;font-size:0.8rem;">
+        🔧 显示调试信息 Show Debug
+      </button>
     </div>
     
     <!-- 等待页面 -->

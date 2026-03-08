@@ -104,24 +104,33 @@ async function joinRoom() {
 async function joinRoomDemo() {
   roomId = roomId || 'demo_' + Math.random().toString(36).substring(2, 8);
   
-  console.log('演示模式 - 尝试从 Supabase 获取房间数据，Room ID:', roomId);
+  console.log('=== 玩家加入调试 ===');
+  console.log('Room ID:', roomId);
+  console.log('当前 URL:', window.location.href);
   
   try {
     // 尝试从 Supabase 获取房间数据
     if (!supabase) {
+      console.log('初始化 Supabase...');
       await initSupabase();
     }
     
+    console.log('Supabase 已初始化');
+    
     // 获取房间信息
+    console.log('查询房间:', roomId);
     const { data: room, error: roomError } = await supabase
       .from('rooms')
       .select('*')
       .eq('id', roomId)
       .single();
     
+    console.log('房间查询结果:', { data: room, error: roomError });
+    
     if (roomError || !room) {
       console.log('房间不存在，使用随机词语');
-      // 房间不存在，使用随机词语
+      // 显示错误信息给用户
+      showDebugInfo('房间不存在 Room not found', roomId);
       useRandomWords();
       return;
     }
@@ -213,6 +222,19 @@ async function joinRoomDemo() {
   
   // 直接显示玩家页面
   showPlayerPage();
+}
+
+// 显示调试信息
+function showDebugInfo(title, roomId) {
+  const debugDiv = document.createElement('div');
+  debugDiv.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;background:#1e293b;border:2px solid #ef4444;border-radius:8px;padding:12px;font-size:0.8rem;color:#f1f5f9;z-index:9999;';
+  debugDiv.innerHTML = `
+    <strong style="color:#ef4444;">⚠️ ${title}</strong><br>
+    <span style="color:#94a3b8;">Room ID:</span> ${roomId}<br>
+    <span style="color:#94a3b8;">URL:</span> ${window.location.href}<br>
+    <button onclick="this.parentElement.remove()" style="margin-top:8px;padding:4px 12px;background:#6366f1;border:none;border-radius:4px;color:white;cursor:pointer;">关闭 Close</button>
+  `;
+  document.body.appendChild(debugDiv);
 }
 
 // 使用随机词语（后备方案）
