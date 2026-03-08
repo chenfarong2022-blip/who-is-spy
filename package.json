@@ -1,0 +1,12 @@
+{
+  "name": "who-is-spy",
+  "version": "1.0.0",
+  "description": "🎭 一款简洁优雅的谁是卧底发牌应用，支持手机扫码加入游戏。",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

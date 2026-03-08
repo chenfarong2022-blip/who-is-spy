@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我的身份 - My Word</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div id="player-page" class="page active">
+      <h1 class="title">🎭 你的身份</h1>
+      <h2 class="subtitle">Your Word</h2>
+      
+      <div class="card">
+        <div class="player-info">
+          <span class="player-number">玩家 Player <span id="player-num">1</span></span>
+        </div>
+        
+        <div class="word-card" onclick="toggleWord()">
+          <div class="word-content" id="word-content">
+            <div class="word-main" id="player-word">???</div>
+            <div class="word-pinyin" id="player-pinyin"></div>
+          </div>
+          <div class="word-hidden" id="word-hidden">
+            <div class="tap-hint">
+              <span class="eye-icon">👁️</span>
+              <span>点击查看<br>Tap to View</span>
+            </div>
+          </div>
+        </div>
+        
+        <button class="btn-secondary" onclick="confirmWord()">
+          我记住了 I Got It
+        </button>
+      </div>
+      
+      <div class="game-tips">
+        <div class="tip-item">
+          <span class="tip-icon">💬</span>
+          <div class="tip-text">
+            <p>描述你的词语，但不能直接说出来</p>
+            <p>Describe your word without saying it directly</p>
+          </div>
+        </div>
+        <div class="tip-item">
+          <span class="tip-icon">🔍</span>
+          <div class="tip-text">
+            <p>找出和你描述不同的卧底</p>
+            <p>Find the spy whose description differs</p>
+          </div>
+        </div>
+        <div class="tip-item">
+          <span class="tip-icon">🗳️</span>
+          <div class="tip-text">
+            <p>每轮投票淘汰一人</p>
+            <p>Vote to eliminate one person each round</p>
+          </div>
+        </div>
+        <div class="tip-item">
+          <span class="tip-icon">🏆</span>
+          <div class="tip-text">
+            <p>平民淘汰所有卧底获胜，卧底存活到最后获胜</p>
+            <p>Civilians win by eliminating all spies; spies win by surviving</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 等待页面 -->
+    <div id="waiting-page" class="page">
+      <div class="waiting-container">
+        <div class="spinner"></div>
+        <h2>等待其他玩家...</h2>
+        <p>Waiting for other players...</p>
+      </div>
+    </div>
+    
+    <!-- 游戏结束页面 -->
+    <div id="player-result-page" class="page">
+      <h1 class="title" id="player-result-title">🏆 游戏结束</h1>
+      <h2 class="subtitle">Game Over</h2>
+      
+      <div class="card result-card">
+        <div class="word-reveal">
+          <div class="word-item">
+            <span class="label">平民 Civilian:</span>
+            <span class="word" id="civilian-result"></span>
+          </div>
+          <div class="word-item">
+            <span class="label">卧底 Spy:</span>
+            <span class="word" id="spy-result"></span>
+          </div>
+          <div class="word-item">
+            <span class="label">你的身份 Your Role:</span>
+            <span class="word" id="my-role"></span>
+          </div>
+        </div>
+        
+        <button class="btn-primary" onclick="location.href='index.html'">
+          返回首页 Back to Home
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script type="module" src="supabase.js"></script>
+  <script src="words.js"></script>
+  <script src="player.js"></script>
+</body>
+</html>

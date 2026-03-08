@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>谁是卧底 - Who Is Spy</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- 创建房间页面 -->
+    <div id="setup-page" class="page active">
+      <h1 class="title">🎭 谁是卧底</h1>
+      <h2 class="subtitle">Who Is Spy</h2>
+      
+      <div class="card">
+        <div class="form-group">
+          <label>玩家人数 Players</label>
+          <div class="player-selector">
+            <button class="btn-icon" onclick="adjustPlayers(-1)">−</button>
+            <span id="player-count">5</span>
+            <button class="btn-icon" onclick="adjustPlayers(1)">+</button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>卧底数量 Spies</label>
+          <div class="player-selector">
+            <button class="btn-icon" onclick="adjustSpies(-1)">−</button>
+            <span id="spy-count">1</span>
+            <button class="btn-icon" onclick="adjustSpies(1)">+</button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>平民词 Civilian Word</label>
+          <div class="word-input-group">
+            <input type="text" id="civilian-word" placeholder="输入词语 Enter word">
+            <button class="btn-random" onclick="randomWords()">🎲</button>
+          </div>
+          <div id="civilian-pinyin" class="pinyin-hint"></div>
+        </div>
+        
+        <div class="form-group">
+          <label>卧底词 Spy Word</label>
+          <div class="word-input-group">
+            <input type="text" id="spy-word" placeholder="输入词语 Enter word">
+            <button class="btn-random" onclick="randomWords()">🎲</button>
+          </div>
+          <div id="spy-pinyin" class="pinyin-hint"></div>
+        </div>
+        
+        <button class="btn-primary" onclick="createRoom()">
+          创建房间 Create Room
+        </button>
+      </div>
+      
+      <div class="tips">
+        <p>💡 提示：点击 🎲 随机生成词语</p>
+        <p>💡 Tip: Click 🎲 for random words</p>
+      </div>
+    </div>
+    
+    <!-- 房间等待页面 -->
+    <div id="lobby-page" class="page">
+      <h1 class="title">🎮 房间已创建</h1>
+      <h2 class="subtitle">Room Created</h2>
+      
+      <div class="card">
+        <div id="qrcode" class="qrcode-container"></div>
+        <p class="room-id">房间号 Room ID: <span id="room-id-display"></span></p>
+        <p class="join-count">已加入 Joined: <span id="joined-count">0</span>/<span id="total-players">5</span></p>
+        
+        <button class="btn-primary" onclick="startGame()" id="start-btn" disabled>
+          开始游戏 Start Game
+        </button>
+      </div>
+      
+      <div class="player-list" id="player-list">
+        <!-- 玩家列表动态生成 -->
+      </div>
+    </div>
+    
+    <!-- 游戏结束页面 -->
+    <div id="result-page" class="page">
+      <h1 class="title" id="result-title">🏆 游戏结束</h1>
+      <h2 class="subtitle">Game Over</h2>
+      
+      <div class="card result-card">
+        <div class="word-reveal">
+          <div class="word-item">
+            <span class="label">平民 Civilian:</span>
+            <span class="word" id="civilian-result"></span>
+          </div>
+          <div class="word-item">
+            <span class="label">卧底 Spy:</span>
+            <span class="word" id="spy-result"></span>
+          </div>
+        </div>
+        
+        <button class="btn-primary" onclick="newGame()">
+          新游戏 New Game
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script type="module" src="supabase.js"></script>
+  <script src="words.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
