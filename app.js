@@ -98,27 +98,33 @@ async function createRoom() {
 function showLobbyDemo() {
   document.getElementById('setup-page').classList.remove('active');
   document.getElementById('lobby-page').classList.add('active');
-
+  
   const displayRoomId = roomId || 'demo_' + Math.random().toString(36).substring(2, 8);
   document.getElementById('room-id-display').textContent = displayRoomId;
   document.getElementById('total-players').textContent = playerCount;
 
-  // 生成二维码 URL - 正确处理 GitHub Pages 路径
-  const baseUrl = window.location.href;
-  const roomUrl = baseUrl.includes('index.html')
-    ? baseUrl.replace('index.html', 'player.html') + '?room=' + displayRoomId
-    : baseUrl.replace(/\/$/, '') + '/player.html?room=' + displayRoomId;
-
+  // 生成二维码 URL - 直接使用绝对路径
+  const baseUrl = window.location.origin + window.location.pathname;
+  const roomUrl = baseUrl.replace(/index\.html$/, '').replace(/\/$/, '') + '/player.html?room=' + displayRoomId;
+  
+  console.log('当前 URL:', window.location.href);
   console.log('生成二维码 URL:', roomUrl);
-
+  
+  // 显示调试信息
+  const debugInfo = `
+    <div style="font-size:0.7rem;color:#64748b;text-align:center;margin-top:10px;">
+      <p>扫码 URL: ${roomUrl}</p>
+    </div>
+  `;
+  
   // 生成二维码（使用 qrcode-generator 库）
   try {
     const qr = qrcode(0, 'M');
     qr.addData(roomUrl);
     qr.make();
-
+    
     const svg = qr.createSvgTag(4);
-    document.getElementById('qrcode').innerHTML = svg;
+    document.getElementById('qrcode').innerHTML = svg + debugInfo;
   } catch (e) {
     console.error('二维码生成失败:', e);
     // 降级方案：显示 URL 和房间号
@@ -128,10 +134,11 @@ function showLobbyDemo() {
         <p style="color:#6366f1;font-weight:bold;">房间号：${displayRoomId}</p>
         <p style="font-size:0.85rem;color:#94a3b8;margin-top:10px;">请手动分享链接给玩家</p>
         <p style="font-size:0.75rem;color:#64748b;word-break:break-all;margin-top:5px;">${roomUrl}</p>
+        ${debugInfo}
       </div>
     `;
   }
-
+  
   // 模拟玩家加入
   simulatePlayersJoining();
 }
@@ -140,17 +147,17 @@ function showLobbyDemo() {
 function showLobby() {
   document.getElementById('setup-page').classList.remove('active');
   document.getElementById('lobby-page').classList.add('active');
-  
+
   document.getElementById('room-id-display').textContent = roomId;
   document.getElementById('total-players').textContent = playerCount;
-  
+
   // 生成二维码 URL - 正确处理 GitHub Pages 路径
   const pathname = window.location.pathname;
   const playerPath = pathname.includes('index.html')
     ? pathname.replace('index.html', 'player.html')
     : pathname.replace(/\/$/, '') + '/player.html';
   const roomUrl = window.location.origin + playerPath + '?room=' + roomId;
-  
+
   try {
     const qr = qrcode(0, 'M');
     qr.addData(roomUrl);
@@ -160,7 +167,7 @@ function showLobby() {
   } catch (e) {
     console.error('二维码生成失败:', e);
   }
-  
+
   // 监听玩家加入
   listenForPlayers();
 }
