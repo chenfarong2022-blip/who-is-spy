@@ -30,9 +30,15 @@ async function initSupabase() {
 async function joinRoom() {
   roomId = getRoomIdFromUrl();
   
+  // 调试信息
+  console.log('当前 URL:', window.location.href);
+  console.log('Room ID from URL:', roomId);
+  
   if (!roomId) {
-    alert('无效的房间链接\nInvalid room link');
-    window.location.href = 'index.html';
+    // 显示调试信息而不是直接跳转
+    const debugMsg = `无效的房间链接\nInvalid room link\n\n当前 URL: ${window.location.href}\nRoom ID: ${roomId}`;
+    alert(debugMsg);
+    // 不自动跳转，让用户看到错误
     return;
   }
   
