@@ -109,20 +109,25 @@ function showLobbyDemo() {
 
   console.log('生成二维码 URL:', roomUrl);
 
-  // 生成二维码
+  // 生成二维码（使用 qrcode-generator 库）
   try {
-    QRCode.toCanvas(document.getElementById('qrcode'), roomUrl, {
-      width: 200,
-      margin: 2
-    }, function(error) {
-      if (error) {
-        console.error('二维码生成失败:', error);
-        document.getElementById('qrcode').innerHTML = '<p style="color:#6366f1;text-align:center;">📱 扫码功能演示<br>URL: ' + roomUrl.substring(0, 50) + '...</p>';
-      }
-    });
+    const qr = qrcode(0, 'M');
+    qr.addData(roomUrl);
+    qr.make();
+
+    const svg = qr.createSvgTag(4);
+    document.getElementById('qrcode').innerHTML = svg;
   } catch (e) {
-    console.error('QRCode 库未加载:', e);
-    document.getElementById('qrcode').innerHTML = '<p style="color:#6366f1;text-align:center;padding:20px;">🎮 演示模式<br>房间号：' + displayRoomId + '</p>';
+    console.error('二维码生成失败:', e);
+    // 降级方案：显示 URL 和房间号
+    document.getElementById('qrcode').innerHTML = `
+      <div style="text-align:center;padding:20px;">
+        <p style="font-size:1.2rem;margin-bottom:10px;">🎮 房间已创建</p>
+        <p style="color:#6366f1;font-weight:bold;">房间号：${displayRoomId}</p>
+        <p style="font-size:0.85rem;color:#94a3b8;margin-top:10px;">请手动分享链接给玩家</p>
+        <p style="font-size:0.75rem;color:#64748b;word-break:break-all;margin-top:5px;">${roomUrl}</p>
+      </div>
+    `;
   }
 
   // 模拟玩家加入
@@ -133,17 +138,23 @@ function showLobbyDemo() {
 function showLobby() {
   document.getElementById('setup-page').classList.remove('active');
   document.getElementById('lobby-page').classList.add('active');
-
+  
   document.getElementById('room-id-display').textContent = roomId;
   document.getElementById('total-players').textContent = playerCount;
-
+  
   // 生成二维码
   const roomUrl = window.location.origin + window.location.pathname.replace('index.html', 'player.html') + '?room=' + roomId;
-  QRCode.toCanvas(document.getElementById('qrcode'), roomUrl, {
-    width: 200,
-    margin: 2
-  });
-
+  
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData(roomUrl);
+    qr.make();
+    const svg = qr.createSvgTag(4);
+    document.getElementById('qrcode').innerHTML = svg;
+  } catch (e) {
+    console.error('二维码生成失败:', e);
+  }
+  
   // 监听玩家加入
   listenForPlayers();
 }
@@ -250,7 +261,7 @@ async function startGame() {
       .from('rooms')
       .update({ status: 'playing' })
       .eq('id', roomId);
-    
+
     // 显示主持人游戏页面
     showHostGamePage(assignments);
 
