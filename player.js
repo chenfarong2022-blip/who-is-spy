@@ -102,14 +102,18 @@ async function joinRoom() {
 
 // 玩家加入房间（演示模式）
 function joinRoomDemo() {
-  roomId = roomId || 'demo';
+  roomId = roomId || 'demo_' + Math.random().toString(36).substring(2, 8);
   playerNumber = Math.floor(Math.random() * 8) + 1;
   
   // 模拟分配词语
   const wordPairs = [
     { civilian: "牛奶", spy: "豆浆" },
     { civilian: "苹果", spy: "香蕉" },
-    { civilian: "咖啡", spy: "茶" }
+    { civilian: "咖啡", spy: "茶" },
+    { civilian: "微信", spy: "QQ" },
+    { civilian: "电影", spy: "电视剧" },
+    { civilian: "奶茶", spy: "果汁" },
+    { civilian: "篮球", spy: "足球" }
   ];
   
   const pair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
@@ -119,7 +123,12 @@ function joinRoomDemo() {
   myPinyin = getPinyin(myWord);
   isSpy = isSpyDemo;
   
-  showPlayerPage();
+  console.log('演示模式 - 玩家:', playerNumber, '词语:', myWord, '身份:', isSpy ? '卧底' : '平民');
+  
+  // 延迟一点显示，模拟等待
+  setTimeout(() => {
+    showPlayerPage();
+  }, 500);
 }
 
 // 获取玩家信息
@@ -206,19 +215,34 @@ function toggleWord() {
   const content = document.getElementById('word-content');
   const hidden = document.getElementById('word-hidden');
   
+  // 如果已经显示，不要隐藏（防止误触）
   if (wordVisible) {
-    content.classList.remove('visible');
-    hidden.classList.remove('hidden');
-  } else {
-    content.classList.add('visible');
-    hidden.classList.add('hidden');
-    
-    // 显示词语
-    document.getElementById('player-word').textContent = myWord;
-    document.getElementById('player-pinyin').textContent = myPinyin;
+    return;
   }
   
-  wordVisible = !wordVisible;
+  // 显示词语
+  content.classList.add('visible');
+  hidden.classList.add('hidden');
+  
+  // 确保词语已设置
+  if (!myWord) {
+    // 演示模式：如果没有词语，随机生成一个
+    const wordPairs = [
+      { civilian: "牛奶", spy: "豆浆" },
+      { civilian: "苹果", spy: "香蕉" },
+      { civilian: "咖啡", spy: "茶" },
+      { civilian: "微信", spy: "QQ" },
+      { civilian: "电影", spy: "电视剧" }
+    ];
+    const pair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+    myWord = pair.civilian;
+    myPinyin = getPinyin(myWord);
+  }
+  
+  document.getElementById('player-word').textContent = myWord;
+  document.getElementById('player-pinyin').textContent = myPinyin;
+  
+  wordVisible = true;
 }
 
 // 确认记住词语
