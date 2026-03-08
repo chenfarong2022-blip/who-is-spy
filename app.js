@@ -103,9 +103,11 @@ function showLobbyDemo() {
   document.getElementById('room-id-display').textContent = displayRoomId;
   document.getElementById('total-players').textContent = playerCount;
 
-  // 生成二维码 URL
-  const baseUrl = window.location.href.replace('index.html', 'player.html');
-  const roomUrl = baseUrl + '?room=' + displayRoomId;
+  // 生成二维码 URL - 正确处理 GitHub Pages 路径
+  const baseUrl = window.location.href;
+  const roomUrl = baseUrl.includes('index.html')
+    ? baseUrl.replace('index.html', 'player.html') + '?room=' + displayRoomId
+    : baseUrl.replace(/\/$/, '') + '/player.html?room=' + displayRoomId;
 
   console.log('生成二维码 URL:', roomUrl);
 
@@ -142,8 +144,12 @@ function showLobby() {
   document.getElementById('room-id-display').textContent = roomId;
   document.getElementById('total-players').textContent = playerCount;
   
-  // 生成二维码
-  const roomUrl = window.location.origin + window.location.pathname.replace('index.html', 'player.html') + '?room=' + roomId;
+  // 生成二维码 URL - 正确处理 GitHub Pages 路径
+  const pathname = window.location.pathname;
+  const playerPath = pathname.includes('index.html')
+    ? pathname.replace('index.html', 'player.html')
+    : pathname.replace(/\/$/, '') + '/player.html';
+  const roomUrl = window.location.origin + playerPath + '?room=' + roomId;
   
   try {
     const qr = qrcode(0, 'M');
