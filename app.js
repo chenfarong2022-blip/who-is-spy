@@ -46,26 +46,26 @@ function updateSpyLimit() {
 async function createRoom() {
   civilianWord = document.getElementById('civilian-word').value.trim();
   spyWord = document.getElementById('spy-word').value.trim();
-
+  
   if (!civilianWord || !spyWord) {
     alert('请输入词语\nPlease enter words');
     return;
   }
-
+  
   if (civilianWord === spyWord) {
     alert('平民词和卧底词不能相同\nCivilian and spy words must be different');
     return;
   }
-
+  
   // 生成房间 ID
   roomId = 'room_' + Math.random().toString(36).substring(2, 10);
-
+  
   try {
     // 初始化 Supabase
     if (!supabase) {
       await initSupabase();
     }
-
+    
     // 创建房间记录
     const { error } = await supabase
       .from('rooms')
@@ -78,77 +78,56 @@ async function createRoom() {
         status: 'waiting',
         created_at: new Date().toISOString()
       });
-
+    
     if (error) {
-      console.warn('Supabase 错误，使用演示模式:', error);
+      console.warn('Supabase 错误:', error);
       throw error;
     }
-
+    
+    console.log('房间创建成功:', roomId);
+    
     // 切换到等待页面
     showLobby();
-
+    
   } catch (error) {
-    console.log('使用演示模式（无需数据库）');
-    // 演示模式：不使用 Supabase 时
+    console.error('创建房间失败:', error);
+    // 即使 Supabase 失败，也显示演示模式
     showLobbyDemo();
   }
 }
 
 // 显示大厅（演示模式）
-function showLobbyDemo() {
+async function showLobbyDemo() {
   document.getElementById('setup-page').classList.remove('active');
   document.getElementById('lobby-page').classList.add('active');
-  
+
   const displayRoomId = roomId || 'demo_' + Math.random().toString(36).substring(2, 8);
   document.getElementById('room-id-display').textContent = displayRoomId;
   document.getElementById('total-players').textContent = playerCount;
 
-  // 保存词语到 localStorage，供玩家端读取
-  const roomWords = {
-    civilianWord: civilianWord,
-    spyWord: spyWord,
-    playerCount: playerCount,
-    spyCount: spyCount
-  };
-  localStorage.setItem('room_' + displayRoomId + '_words', JSON.stringify(roomWords));
-  console.log('保存房间词语:', roomWords);
-
-  // 生成二维码 URL - 直接使用绝对路径
+  // 生成二维码 URL
   const baseUrl = window.location.origin + window.location.pathname;
   const roomUrl = baseUrl.replace(/index\.html$/, '').replace(/\/$/, '') + '/player.html?room=' + displayRoomId;
-  
-  console.log('当前 URL:', window.location.href);
+
   console.log('生成二维码 URL:', roomUrl);
-  
-  // 显示调试信息
-  const debugInfo = `
-    <div style="font-size:0.7rem;color:#64748b;text-align:center;margin-top:10px;">
-      <p>扫码 URL: ${roomUrl}</p>
-    </div>
-  `;
-  
-  // 生成二维码（使用 qrcode-generator 库）
+
+  // 生成二维码
   try {
     const qr = qrcode(0, 'M');
     qr.addData(roomUrl);
     qr.make();
-    
     const svg = qr.createSvgTag(4);
-    document.getElementById('qrcode').innerHTML = svg + debugInfo;
+    document.getElementById('qrcode').innerHTML = svg;
   } catch (e) {
     console.error('二维码生成失败:', e);
-    // 降级方案：显示 URL 和房间号
     document.getElementById('qrcode').innerHTML = `
       <div style="text-align:center;padding:20px;">
         <p style="font-size:1.2rem;margin-bottom:10px;">🎮 房间已创建</p>
         <p style="color:#6366f1;font-weight:bold;">房间号：${displayRoomId}</p>
-        <p style="font-size:0.85rem;color:#94a3b8;margin-top:10px;">请手动分享链接给玩家</p>
-        <p style="font-size:0.75rem;color:#64748b;word-break:break-all;margin-top:5px;">${roomUrl}</p>
-        ${debugInfo}
       </div>
     `;
   }
-  
+
   // 模拟玩家加入
   simulatePlayersJoining();
 }
@@ -295,8 +274,46 @@ async function startGame() {
 }
 
 // 开始游戏（演示模式）
-function startGameDemo(assignments) {
-  // 演示模式：直接显示主持人游戏页面
+async function startGameDemo(assignments) {
+  // 尝试使用 Supabase 保存房间数据
+  try {
+    if (!supabase) {
+      await initSupabase();
+    }
+
+    // 保存房间到 Supabase
+    await supabase.from('rooms').insert({
+      id: roomId,
+      player_count: playerCount,
+      spy_count: spyCount,
+      civilian_word: civilianWord,
+      spy_word: spyWord,
+      status: 'playing',
+      created_at: new Date().toISOString()
+    });
+
+    // 保存玩家身份
+    for (let i = 0; i < assignments.length; i++) {
+      const isSpy = assignments[i] === 'spy';
+      const word = isSpy ? spyWord : civilianWord;
+      const pinyin = getPinyin(word);
+
+      await supabase.from('players').insert({
+        room_id: roomId,
+        player_number: i + 1,
+        role: isSpy ? 'spy' : 'civilian',
+        word: word,
+        pinyin: pinyin,
+        has_viewed: false
+      });
+    }
+
+    console.log('已保存房间到 Supabase:', roomId);
+  } catch (error) {
+    console.warn('Supabase 保存失败，使用纯演示模式:', error);
+  }
+
+  // 显示主持人游戏页面
   showHostGamePage(assignments);
 }
 

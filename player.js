@@ -101,47 +101,140 @@ async function joinRoom() {
 }
 
 // 玩家加入房间（演示模式）
-function joinRoomDemo() {
+async function joinRoomDemo() {
   roomId = roomId || 'demo_' + Math.random().toString(36).substring(2, 8);
-  playerNumber = Math.floor(Math.random() * 8) + 1;
   
-  // 从 localStorage 获取房主设置的词语（如果存在）
-  const storedWords = localStorage.getItem('room_' + roomId + '_words');
+  console.log('演示模式 - 尝试从 Supabase 获取房间数据，Room ID:', roomId);
   
-  if (storedWords) {
-    // 使用房主设置的词语
-    const words = JSON.parse(storedWords);
-    const isSpyDemo = Math.random() > (1 / words.playerCount); // 随机分配卧底
+  try {
+    // 尝试从 Supabase 获取房间数据
+    if (!supabase) {
+      await initSupabase();
+    }
     
-    myWord = isSpyDemo ? words.spyWord : words.civilianWord;
-    myPinyin = getPinyin(myWord);
-    isSpy = isSpyDemo;
+    // 获取房间信息
+    const { data: room, error: roomError } = await supabase
+      .from('rooms')
+      .select('*')
+      .eq('id', roomId)
+      .single();
     
-    console.log('演示模式 (使用房主词语) - 玩家:', playerNumber, '词语:', myWord, '身份:', isSpy ? '卧底' : '平民');
-  } else {
-    // 模拟分配词语
-    const wordPairs = [
-      { civilian: "牛奶", spy: "豆浆" },
-      { civilian: "苹果", spy: "香蕉" },
-      { civilian: "咖啡", spy: "茶" },
-      { civilian: "微信", spy: "QQ" },
-      { civilian: "电影", spy: "电视剧" },
-      { civilian: "奶茶", spy: "果汁" },
-      { civilian: "篮球", spy: "足球" }
-    ];
+    if (roomError || !room) {
+      console.log('房间不存在，使用随机词语');
+      // 房间不存在，使用随机词语
+      useRandomWords();
+      return;
+    }
     
-    const pair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
-    const isSpyDemo = Math.random() > 0.8; // 20% 概率是卧底
+    // 房间存在，使用房主设置的词语
+    civilianWord = room.civilian_word;
+    spyWord = room.spy_word;
+    playerCount = room.player_count;
+    spyCount = room.spy_count;
     
-    myWord = isSpyDemo ? pair.spy : pair.civilian;
-    myPinyin = getPinyin(myWord);
-    isSpy = isSpyDemo;
+    console.log('找到房间:', room);
     
-    console.log('演示模式 (随机词语) - 玩家:', playerNumber, '词语:', myWord, '身份:', isSpy ? '卧底' : '平民');
+    // 获取或创建玩家记录
+    let playerData = null;
+    
+    // 尝试从 localStorage 获取 playerId
+    const storedPlayerId = localStorage.getItem('playerId_' + roomId);
+    
+    if (storedPlayerId) {
+      const { data: existingPlayer } = await supabase
+        .from('players')
+        .select('*')
+        .eq('id', storedPlayerId)
+        .single();
+      
+      if (existingPlayer) {
+        playerData = existingPlayer;
+        console.log('找到现有玩家:', playerData);
+      }
+    }
+    
+    if (!playerData) {
+      // 创建新玩家记录
+      const { data: players } = await supabase
+        .from('players')
+        .select('player_number')
+        .eq('room_id', roomId)
+        .order('player_number', { ascending: false })
+        .limit(1);
+      
+      const newPlayerNumber = players && players.length > 0 ? players[0].player_number + 1 : 1;
+      
+      // 随机分配身份
+      const { data: allPlayers } = await supabase
+        .from('players')
+        .select('id')
+        .eq('room_id', roomId);
+      
+      const currentPlayerCount = allPlayers ? allPlayers.length : 0;
+      const isSpy = currentPlayerCount < spyCount; // 前 spyCount 个玩家是卧底
+      
+      const word = isSpy ? spyWord : civilianWord;
+      const pinyin = getPinyin(word);
+      
+      const { data: newPlayer, error: insertError } = await supabase
+        .from('players')
+        .insert({
+          room_id: roomId,
+          player_number: newPlayerNumber,
+          role: isSpy ? 'spy' : 'civilian',
+          word: word,
+          pinyin: pinyin,
+          has_viewed: false
+        })
+        .select()
+        .single();
+      
+      if (insertError) throw insertError;
+      
+      playerData = newPlayer;
+      localStorage.setItem('playerId_' + roomId, playerData.id);
+      
+      console.log('创建新玩家:', playerData);
+    }
+    
+    // 设置玩家数据
+    playerId = playerData.id;
+    playerNumber = playerData.player_number;
+    myWord = playerData.word;
+    myPinyin = playerData.pinyin;
+    isSpy = playerData.role === 'spy';
+    
+    console.log('玩家数据 - 编号:', playerNumber, '词语:', myWord, '身份:', isSpy ? '卧底' : '平民');
+    
+  } catch (error) {
+    console.error('Supabase 获取失败，使用随机词语:', error);
+    useRandomWords();
   }
   
-  // 直接显示玩家页面，不显示等待界面
+  // 直接显示玩家页面
   showPlayerPage();
+}
+
+// 使用随机词语（后备方案）
+function useRandomWords() {
+  playerNumber = Math.floor(Math.random() * 8) + 1;
+  
+  const wordPairs = [
+    { civilian: "牛奶", spy: "豆浆" },
+    { civilian: "苹果", spy: "香蕉" },
+    { civilian: "咖啡", spy: "茶" },
+    { civilian: "微信", spy: "QQ" },
+    { civilian: "电影", spy: "电视剧" }
+  ];
+  
+  const pair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+  const isSpyDemo = Math.random() > 0.8;
+  
+  myWord = isSpyDemo ? pair.spy : pair.civilian;
+  myPinyin = getPinyin(myWord);
+  isSpy = isSpyDemo;
+  
+  console.log('随机词语 - 玩家:', playerNumber, '词语:', myWord, '身份:', isSpy ? '卧底' : '平民');
 }
 
 // 获取玩家信息
